@@ -19,19 +19,23 @@ Add the following lines to your project's pom.xml:
 ```
     final Track track = new Track(new Track.ConcurrentLoggingConsumer("/Users/BENJAMIN/data/file.log"));
 		
-		Map<String, Object> per = new HashMap<String,Object>();
-		per.put("aaa","AAAAA");
-		per.put("bbbb", "BBBB");
+    Map<String, Object> per = new HashMap<String,Object>(); 
+    per.put("aaa","AAAAA");
+    per.put("bbbb", "BBBB");
 		
-		track.track("test",per);
+    track.track("test",per);
 		
-		track.shutdown();
+    track.shutdown();
 ```
 
 ## 显示效果
 
 上面的程序执行完后会在对应的目录生成file文件  
-内容如下：  
+内容如下： 
+
+```
 {"lib":{"$lib":"Java","$lib_method":"code","$lib_version":"1.0.0","$lib_detail":"com.yonyou.cloud.track.Test##main##Test.java##17"},"time":1510641026414,"type":"track","event":"test","properties":{"$lib":"Java","aaa":"AAAAA","bbbb":"BBBB","$lib_version":"1.0.0"}}
+
+```
 
 
