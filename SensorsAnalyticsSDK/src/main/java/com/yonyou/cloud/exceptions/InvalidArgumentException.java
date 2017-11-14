@@ -1,4 +1,4 @@
-package com.sensorsdata.analytics.javasdk.exceptions;
+package com.yonyou.cloud.exceptions;
 
 /**
  * 非法的DistinctID

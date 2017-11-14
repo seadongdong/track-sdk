@@ -1,4 +1,4 @@
-package com.sensorsdata.analytics.javasdk.util;
+package com.yonyou.cloud.track.util;
 
 //Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
 //www.source-code.biz, www.inventec.ch/chdh
