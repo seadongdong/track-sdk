@@ -7,11 +7,11 @@
 Add the following lines to your project's pom.xml:
 
 ```
-		 <dependency>
-			<groupId>com.yonyou.cloud</groupId>
-			<artifactId>track</artifactId>
-			<version>1.0.0</version>
-		</dependency>
+	<dependency>
+		<groupId>com.yonyou.cloud</groupId>
+		<artifactId>track</artifactId>
+		<version>1.0.0</version>
+	</dependency>
 ```
 
 ## How To Use
