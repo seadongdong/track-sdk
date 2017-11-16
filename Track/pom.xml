@@ -9,7 +9,7 @@
     <groupId>com.yonyou.cloud</groupId>
     <name>track</name>
     <artifactId>track</artifactId>
-    <version>1.0.0</version>
+    <version>0.0.1-SNAPSHOT</version>
     <description>用于埋点供收集</description>
     <url>http://sensorsdata.cn</url>
 

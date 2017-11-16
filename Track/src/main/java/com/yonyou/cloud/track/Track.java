@@ -643,15 +643,17 @@ public class Track {
 	 *
 	 * @param eventName
 	 *            事件名称
+	 * @param bizType
+	 *            事件业务名称
 	 * @param properties
 	 *            事件的属性
 	 *
 	 * @throws InvalidArgumentException
 	 *             eventName 或 properties 不符合命名规范和类型规范时抛出该异常
 	 */
-	public void track(String eventName, Map<String, Object> properties)
+	public void track(String eventName,String bizType, Map<String, Object> properties)
 			throws InvalidArgumentException {
-		addEvent(null, false, null, "track", eventName, properties);
+		addEvent(null, false, null, bizType, eventName, properties);
 	}
 
 //	/**

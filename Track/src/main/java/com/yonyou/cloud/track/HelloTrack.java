@@ -42,7 +42,7 @@ public class HelloTrack {
 		properties.put("$os_version", "8.1"); // 操作系统的具体版本
 		properties.put("$ip", "123.123.123.123"); // 请求中能够拿到用户的IP，则把这个传递给SA，SA会自动根据这个解析省份、城市
 		properties.put("Channel", "baidu"); // 用户是通过baidu这个渠道过来的
-		track.track("ViewHomePage", properties); // 记录访问首页这个event
+		track.track("ViewHomePage","", properties); // 记录访问首页这个event
 
 		// 1.2 搜索商品
 		properties.clear();
@@ -50,7 +50,7 @@ public class HelloTrack {
 		properties.put("$os_version", "8.1"); // 操作系统的具体版本
 		properties.put("$ip", "123.123.123.123"); // 请求中能够拿到用户的IP，则把这个传递给SA，SA会自动根据这个解析省份、城市
 		properties.put("KeyWord", "XX手机"); // 搜索引擎引流过来时使用的关键词
-		track.track( "SearchProduct", properties); // 记录搜索商品这个event
+		track.track( "SearchProduct","", properties); // 记录搜索商品这个event
 
 		// 1.3 浏览商品
 		properties.clear();
@@ -281,7 +281,7 @@ public class HelloTrack {
 		// 维修完成了，再记录一条新的数据
 		properties.put("ServiceStatus", "维修完成"); // 售后服务的状态
 //		track.track(registerId, true, "ServiceAfterSale", properties);
-		track.track("", properties);
+		track.track("", "",properties);
 
 		track.shutdown(); // 关闭API，关闭时会自动调用flush
 	}
