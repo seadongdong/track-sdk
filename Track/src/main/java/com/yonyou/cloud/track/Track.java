@@ -639,12 +639,12 @@ public class Track {
 
 	/**
 	 * 记录一个拥有一个或多个属性的事件。属性取值可接受类型为{@link Number}, {@link String}, {@link Date}和
-	 * {@link List}，若属性包含 $time 字段，则它会覆盖事件的默认时间属性，该字段只接受{@link Date}类型
+	 * {@link List}
 	 *
 	 * @param eventName
 	 *            事件名称
 	 * @param bizType
-	 *            事件业务名称
+	 *            事件业务类型
 	 * @param properties
 	 *            事件的属性
 	 *
