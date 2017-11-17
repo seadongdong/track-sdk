@@ -1,31 +1,9 @@
 package com.yonyou.cloud.track;
 
-import com.yonyou.cloud.exceptions.DebugModeException;
-import com.yonyou.cloud.exceptions.InvalidArgumentException;
-import com.yonyou.cloud.track.util.Base64Coder;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.charset.Charset;
@@ -36,13 +14,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.yonyou.cloud.exceptions.InvalidArgumentException;
+import com.yonyou.cloud.track.util.Base64Coder;
 
 /**
  * 埋点客户端
@@ -916,8 +906,10 @@ public class Track {
 		this.consumer.close();
 	}
 
+	@SuppressWarnings("unused")
 	private static class HttpConsumer {
 
+		@SuppressWarnings("serial")
 		static class HttpConsumerException extends Exception {
 
 			HttpConsumerException(String error, String sendingData, int httpStatusCode, String httpContent) {
@@ -927,14 +919,17 @@ public class Track {
 				this.httpContent = httpContent;
 			}
 
+			@SuppressWarnings("unused")
 			String getSendingData() {
 				return sendingData;
 			}
 
+			@SuppressWarnings("unused")
 			int getHttpStatusCode() {
 				return httpStatusCode;
 			}
 
+			@SuppressWarnings("unused")
 			String getHttpContent() {
 				return httpContent;
 			}
@@ -944,6 +939,7 @@ public class Track {
 			final String httpContent;
 		}
 
+		@SuppressWarnings("unused")
 		HttpConsumer(String serverUrl, Map<String, String> httpHeaders) {
 			this.serverUrl = serverUrl;
 			this.httpHeaders = httpHeaders;
@@ -951,6 +947,7 @@ public class Track {
 			this.compressData = true;
 		}
 
+		@SuppressWarnings("unused")
 		HttpResponse consume(final String data) throws IOException, HttpConsumerException {
 			HttpResponse response = new DefaultHttpClient().execute(getHttpRequest(data));
 
@@ -1099,6 +1096,7 @@ public class Track {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void assertProperties(String eventType, Map<String, Object> properties) throws InvalidArgumentException {
 		if (null == properties) {
 			return;
@@ -1161,6 +1159,7 @@ public class Track {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static String strJoin(String[] arr, String sep) {
 		StringBuilder sbStr = new StringBuilder();
 		for (int i = 0, il = arr.length; i < il; i++) {
