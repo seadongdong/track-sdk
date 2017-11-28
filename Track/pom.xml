@@ -45,6 +45,20 @@
             </plugin>
         </plugins>
     </build>
+    
+    
+    <distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>Releases name</name>
+			<url>http://210.13.111.26:10160/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>snapshots name</name>
+			<url>http://210.13.111.26:10160/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
  
 </project>
 
