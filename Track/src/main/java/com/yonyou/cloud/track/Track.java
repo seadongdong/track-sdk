@@ -26,7 +26,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,7 +42,7 @@ import com.yonyou.cloud.track.util.Base64Coder;
  *
  */
 public class Track {
-
+	private static final Logger loger = LoggerFactory.getLogger(Track.class);
 	private boolean enableTimeFree = false;
 
 	public boolean isEnableTimeFree() {
@@ -521,6 +524,7 @@ public class Track {
 		public synchronized void send(Map<String, Object> message) {
 			if (messageBuffer.length() < BUFFER_LIMITATION) {
 				try {
+					jsonMapper.setSerializationInclusion(Include.NON_NULL);  
 					messageBuffer.append(jsonMapper.writeValueAsString(message));
 					messageBuffer.append("\n");
 				} catch (JsonProcessingException e) {
@@ -1114,7 +1118,10 @@ public class Track {
 			if (!(property.getValue() instanceof Number) && !(property.getValue() instanceof Date)
 					&& !(property.getValue() instanceof String) && !(property.getValue() instanceof Boolean)
 					&& !(property.getValue() instanceof List<?>)) {
-				throw new InvalidArgumentException("The property '" + property.getKey() + "' should be a basic type: "
+//				throw new InvalidArgumentException("The property '" + property.getKey() + "' should be a basic type: "
+//						+ "Number, String, Date, Boolean, List<String>.");
+				//标记点 注释掉
+				loger.info("The property '" + property.getKey() + "' not is a basic type: "
 						+ "Number, String, Date, Boolean, List<String>.");
 			}
 
@@ -1139,10 +1146,13 @@ public class Track {
 
 			// String 类型的属性值，长度不能超过 8192
 			if (property.getValue() instanceof String) {
+				 
 				String value = (String) property.getValue();
+				 
 				if (value.length() > 8192) {
 					property.setValue(value.substring(0, 8192));
 				}
+				 
 			}
 
 			if (eventType.equals("profile_increment")) {
