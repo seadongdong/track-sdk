@@ -38,4 +38,9 @@ Add the following lines to your project's pom.xml:
 
 ```
 
-
+##版本说明
+```
+	track-sdk-0.0.2-SNAPSHOT
+	1.优化部分代码
+	2.允许事件的属性值为空的情况
+```
