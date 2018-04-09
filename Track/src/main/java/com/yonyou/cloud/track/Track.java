@@ -38,11 +38,16 @@ import com.yonyou.cloud.exceptions.InvalidArgumentException;
 import com.yonyou.cloud.track.util.Base64Coder;
 
 /**
- * 埋点客户端
+ *  埋点客户端
+ * @author daniell
  *
  */
 public class Track {
 	private static final Logger loger = LoggerFactory.getLogger(Track.class);
+	private static final String TRACK ="track";
+	private static final String TRACK_SIGNUP ="track_signup";
+	private static final String TIME ="$time";
+	private static final String APP_VERSION ="$app_version";
 	private boolean enableTimeFree = false;
 
 	public boolean isEnableTimeFree() {
@@ -54,374 +59,23 @@ public class Track {
 	}
 
 	private interface Consumer {
+		/**
+		 * 写入信息
+		 * @param message
+		 */
 		void send(Map<String, Object> message);
 
+		/**
+		 * 立即发送缓存中的所有日志
+		 */
 		void flush();
 
+		/**
+		 * 停止SensorsDataAPI所有线程，API停止前会清空所有本地数据
+		 */
 		void close();
 	}
 
-//	private static class DebugConsumer implements Consumer {
-//
-//		public DebugConsumer(final String serverUrl, final boolean writeData) {
-//			String debugUrl = null;
-//			try {
-//				// 将 URI Path 替换成 Debug 模式的 '/debug'
-//				URIBuilder builder = new URIBuilder(new URI(serverUrl));
-//				String[] urlPathes = builder.getPath().split("/");
-//				urlPathes[urlPathes.length - 1] = "debug";
-//				builder.setPath(strJoin(urlPathes, "/"));
-//				debugUrl = builder.build().toURL().toString();
-//			} catch (URISyntaxException e) {
-//				throw new DebugModeException(e);
-//			} catch (MalformedURLException e) {
-//				throw new DebugModeException(e);
-//			}
-//
-//			Map<String, String> headers = new HashMap<String, String>();
-//			if (!writeData) {
-//				headers.put("Dry-Run", "true");
-//			}
-//
-//			this.httpConsumer = new HttpConsumer(debugUrl, headers);
-//			this.jsonMapper = getJsonObjectMapper();
-//		}
-//
-//		@Override
-//		public void send(Map<String, Object> message) {
-//			// XXX: HttpConsumer 只处理了 Message List 的发送？
-//			List<Map<String, Object>> messageList = new ArrayList<Map<String, Object>>();
-//			messageList.add(message);
-//
-//			String sendingData = null;
-//			try {
-//				sendingData = jsonMapper.writeValueAsString(messageList);
-//			} catch (JsonProcessingException e) {
-//				throw new RuntimeException("Failed to serialize data.", e);
-//			}
-//
-//			System.out.println("==========================================================================");
-//
-//			try {
-//				synchronized (httpConsumer) {
-//					httpConsumer.consume(sendingData);
-//				}
-//
-//				System.out.println(String.format("valid message: %s", sendingData));
-//			} catch (IOException e) {
-//				throw new DebugModeException("Failed to send message with DebugConsumer.", e);
-//			} catch (HttpConsumer.HttpConsumerException e) {
-//				System.out.println(String.format("invalid message: %s", e.getSendingData()));
-//				System.out.println(String.format("http status code: %d", e.getHttpStatusCode()));
-//				System.out.println(String.format("http content: %s", e.getHttpContent()));
-//				throw new DebugModeException(e);
-//			}
-//		}
-//
-//		@Override
-//		public void flush() {
-//			// do NOTHING
-//		}
-//
-//		@Override
-//		public void close() {
-//			// do NOTHING;
-//		}
-//
-//		final HttpConsumer httpConsumer;
-//		final ObjectMapper jsonMapper;
-//	}
-
-//	private static class BatchConsumer implements Consumer {
-//
-//		private int flushCount = 0;
-//
-//		public BatchConsumer(final String serverUrl) {
-//			this(serverUrl, MAX_FLUSH_BULK_SIZE);
-//		}
-//
-//		public BatchConsumer(final String serverUrl, final int bulkSize) {
-//			this(serverUrl, bulkSize, false);
-//		}
-//
-//		public BatchConsumer(final String serverUrl, final int bulkSize, final boolean throwException) {
-//			this.messageList = new ArrayList<Map<String, Object>>();
-//			this.httpConsumer = new HttpConsumer(serverUrl, null);
-//			this.jsonMapper = getJsonObjectMapper();
-//			this.bulkSize = Math.min(MAX_FLUSH_BULK_SIZE, bulkSize);
-//			this.throwException = throwException;
-//		}
-//
-//		@Override
-//		public void send(Map<String, Object> message) {
-//			synchronized (messageList) {
-//				messageList.add(message);
-//				if (messageList.size() >= bulkSize) {
-//					flush();
-//				}
-//			}
-//		}
-//
-//		@Override
-//		public void flush() {
-//			synchronized (messageList) {
-//				String sendingData = null;
-//				try {
-//					sendingData = jsonMapper.writeValueAsString(messageList);
-//				} catch (JsonProcessingException e) {
-//					messageList.clear();
-//					if (throwException) {
-//						throw new RuntimeException("Failed to serialize data.", e);
-//					}
-//				}
-//
-//				try {
-//					this.httpConsumer.consume(sendingData);
-//					messageList.clear();
-//				} catch (IOException e) {
-//					if (throwException) {
-//						throw new RuntimeException("Failed to dump message with BatchConsumer.", e);
-//					}
-//				} catch (HttpConsumer.HttpConsumerException e) {
-//					if (throwException) {
-//						throw new RuntimeException("Failed to dump message with BatchConsumer.", e);
-//					}
-//				}
-//			}
-//		}
-//
-//		@Override
-//		public void close() {
-//			flush();
-//		}
-//
-//		private final static int MAX_FLUSH_BULK_SIZE = 50;
-//
-//		private final List<Map<String, Object>> messageList;
-//		private final HttpConsumer httpConsumer;
-//		private final ObjectMapper jsonMapper;
-//		private final int bulkSize;
-//		private final boolean throwException;
-//	}
-
-//	@Deprecated
-//	public interface AsyncBatchConsumerCallback {
-//		void onFlushTask(Future<Boolean> task);
-//	}
-
-//	/**
-//	 * @deprecated Async模式下，开发者需要仔细处理缓存中的数据，如由于异步发送不及时导致缓存队列过大、程序停止时缓
-//	 *             存队列清空等问题。因此我们建议开发者使用 LoggingConsumer 结合 LogAgent 工具导入数据。
-//	 */
-//	@Deprecated
-//	private static class AsyncBatchConsumer implements Consumer {
-//
-//		public AsyncBatchConsumer(final String serverUrl, final int bulkSize, final ThreadPoolExecutor executor,
-//				final AsyncBatchConsumerCallback callback) {
-//			this.messageList = new ArrayList<Map<String, Object>>();
-//			this.httpConsumer = new HttpConsumer(serverUrl, null);
-//			this.jsonMapper = getJsonObjectMapper();
-//			this.bulkSize = Math.min(MAX_FLUSH_BULK_SIZE, bulkSize);
-//			this.executor = executor;
-//			this.callback = callback;
-//		}
-//
-//		@Override
-//		public void send(Map<String, Object> message) {
-//			synchronized (messageList) {
-//				messageList.add(message);
-//				if (messageList.size() >= bulkSize) {
-//					flush();
-//				}
-//			}
-//		}
-//
-//		@Override
-//		public void flush() {
-//			synchronized (messageList) {
-//				try {
-//					final String sendingData = jsonMapper.writeValueAsString(messageList);
-//					final Future<Boolean> task = executor.submit(new Callable<Boolean>() {
-//						@Override
-//						public Boolean call() throws Exception {
-//							int reties = 0;
-//							while (reties < 5) {
-//								try {
-//									httpConsumer.consume(sendingData);
-//									break;
-//								} catch (IOException e) {
-//									// XXX: 发生错误时，默认1秒后才重试
-//									try {
-//										Thread.sleep(1000);
-//									} catch (InterruptedException e1) {
-//									}
-//									reties = reties + 1;
-//								} catch (HttpConsumer.HttpConsumerException e) {
-//									// XXX: 发生错误时，默认1秒后才重试
-//									try {
-//										Thread.sleep(1000);
-//									} catch (InterruptedException e1) {
-//									}
-//									reties = reties + 1;
-//								}
-//							}
-//
-//							if (reties >= 5) {
-//								return false;
-//							}
-//							return true;
-//						}
-//					});
-//					if (callback != null) {
-//						callback.onFlushTask(task);
-//					}
-//				} catch (JsonProcessingException e) {
-//					throw new RuntimeException(e);
-//				} finally {
-//					messageList.clear();
-//				}
-//			}
-//		}
-//
-//		@Override
-//		public void close() {
-//			flush();
-//
-//			executor.shutdown();
-//			try {
-//				executor.awaitTermination(10, TimeUnit.SECONDS);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//
-//		private final static int MAX_FLUSH_BULK_SIZE = 50;
-//
-//		private final List<Map<String, Object>> messageList;
-//		private final HttpConsumer httpConsumer;
-//		private final ObjectMapper jsonMapper;
-//		private final ThreadPoolExecutor executor;
-//		private final AsyncBatchConsumerCallback callback;
-//		private final int bulkSize;
-//	}
-
-//	private static class ConsoleConsumer implements Consumer {
-//
-//		public ConsoleConsumer(final Writer writer) {
-//			this.jsonMapper = getJsonObjectMapper();
-//			this.writer = writer;
-//		}
-//
-//		@Override
-//		public void send(Map<String, Object> message) {
-//			try {
-//				synchronized (writer) {
-//					writer.write(jsonMapper.writeValueAsString(message));
-//					writer.write("\n");
-//				}
-//			} catch (IOException e) {
-//				throw new RuntimeException("Failed to dump message with ConsoleConsumer.", e);
-//			}
-//		}
-//
-//		@Override
-//		public void flush() {
-//			// do NOTHING
-//		}
-//
-//		@Override
-//		public void close() {
-//			// do NOTHING;
-//		}
-//
-//		private final ObjectMapper jsonMapper;
-//		private final Writer writer;
-//	}
-
-//	public static class LoggingConsumer extends InnerLoggingConsumer {
-//
-//		public LoggingConsumer(final String filenamePrefix) throws IOException {
-//			this(filenamePrefix, 8192);
-//		}
-//
-//		public LoggingConsumer(final String filenamePrefix, int bufferSize) throws IOException {
-//			super(new LoggingFileWriterFactory() {
-//				@Override
-//				public LoggingFileWriter getFileWriter(String fileName, String scheduleFileName)
-//						throws FileNotFoundException {
-//					return new LoggingConsumer.InnerLoggingFileWriter(fileName, scheduleFileName);
-//				}
-//			}, filenamePrefix, bufferSize);
-//		}
-//
-//		static class InnerLoggingFileWriter implements LoggingFileWriter {
-//
-//			private final String fileName;
-//			private File outputFile;
-//			private FileOutputStream outputStream;
-//			private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-//
-//			InnerLoggingFileWriter(final String fileName, final String scheduleFileName) throws FileNotFoundException {
-//				this.outputFile = new File(fileName);
-//				this.fileName = scheduleFileName;
-//
-//				if (this.outputFile.exists()) {
-//					String realFileName = fileName + "." + simpleDateFormat.format(this.outputFile.lastModified());
-//					if (!realFileName.equals(this.fileName)) {
-//						File target = new File(realFileName);
-//						int count = 0;
-//						while (target.exists()) {
-//							count += 1;
-//							target = new File(realFileName + "." + count);
-//						}
-//
-//						if (!this.outputFile.renameTo(target)) {
-//							throw new RuntimeException("Failed to rename [" + this.outputFile.getName() + "] to ["
-//									+ target.getName() + "]");
-//						}
-//
-//						this.outputFile = new File(fileName);
-//					}
-//				}
-//
-//				this.outputStream = new FileOutputStream(this.outputFile, true);
-//			}
-//
-//			public void close() {
-//				try {
-//					outputStream.close();
-//				} catch (Exception e) {
-//					throw new RuntimeException("fail to close output stream.", e);
-//				}
-//			}
-//
-//			public boolean isValid(final String fileName) {
-//				return this.fileName.equals(fileName);
-//			}
-//
-//			public boolean write(final StringBuilder sb) {
-//				FileLock lock = null;
-//				try {
-//					final FileChannel channel = outputStream.getChannel();
-//					lock = channel.lock(0, Long.MAX_VALUE, false);
-//					outputStream.write(sb.toString().getBytes("UTF-8"));
-//				} catch (Exception e) {
-//					throw new RuntimeException(e);
-//				} finally {
-//					if (lock != null) {
-//						try {
-//							lock.release();
-//						} catch (IOException e) {
-//							throw new RuntimeException(e);
-//						}
-//					}
-//				}
-//
-//				return true;
-//			}
-//		}
-//
-//	}
 
 	public static class ConcurrentLoggingConsumer extends InnerLoggingConsumer {
 
@@ -448,7 +102,7 @@ public class Track {
 				this.outputStream = new FileOutputStream(fileName, true);
 				this.fileName = fileName;
 			}
-
+			@Override
 			public void close() {
 				try {
 					outputStream.close();
@@ -456,11 +110,11 @@ public class Track {
 					throw new RuntimeException("fail to close output stream.", e);
 				}
 			}
-
+			@Override
 			public boolean isValid(final String fileName) {
 				return this.fileName.equals(fileName);
 			}
-
+			@Override
 			public boolean write(final StringBuilder sb) {
 				FileLock lock = null;
 				try {
@@ -486,21 +140,43 @@ public class Track {
 	}
 
 	interface LoggingFileWriter {
+		/**
+		 * 文件名验证
+		 * @param fileName
+		 * @return
+		 */
 		boolean isValid(final String fileName);
 
+		/**
+		 * 文件流写入
+		 * @param sb
+		 * @return
+		 */
 		boolean write(final StringBuilder sb);
 
+		/**
+		 * 文件流关闭
+		 */
 		void close();
 	}
 
 	interface LoggingFileWriterFactory {
+		/**
+		 * 向文件末尾追加内容
+		 * @param fileName
+		 * @param scheduleFileName
+		 * @return
+		 * @throws FileNotFoundException
+		 */
 		LoggingFileWriter getFileWriter(final String fileName, final String scheduleFileName)
 				throws FileNotFoundException;
 	}
 
 	static class InnerLoggingConsumer implements Consumer {
-
-		private final static int BUFFER_LIMITATION = 1 * 1024 * 1024 * 1024; // 1G
+		/**
+		 *  1G
+		 */
+		private final static int BUFFER_LIMITATION = 1 * 1024 * 1024 * 1024; 
 
 		private final ObjectMapper jsonMapper;
 		private final String filenamePrefix;
@@ -954,9 +630,10 @@ public class Track {
 		@SuppressWarnings("unused")
 		HttpResponse consume(final String data) throws IOException, HttpConsumerException {
 			HttpResponse response = new DefaultHttpClient().execute(getHttpRequest(data));
-
+			int httpStatusCodeMax=200;
+			int httpStatusCodeMin=300;
 			int httpStatusCode = response.getStatusLine().getStatusCode();
-			if (httpStatusCode < 200 || httpStatusCode >= 300) {
+			if (httpStatusCode < httpStatusCodeMax || httpStatusCode >= httpStatusCodeMin) {
 				String httpContent = EntityUtils.toString(response.getEntity(), "UTF-8");
 				throw new HttpConsumerException(String.format("Unexpected response %d from Sensors " + "Analytics: %s",
 						httpStatusCode, httpContent), data, httpStatusCode, httpContent);
@@ -1013,22 +690,22 @@ public class Track {
 			String eventName, Map<String, Object> properties) throws InvalidArgumentException {
 //		assertKey("Distinct Id", distinctId);
 		assertProperties(actionType, properties);
-		if (actionType.equals("track")) {
+		if(TRACK.equals(actionType)) {
 			assertKeyWithRegex("Event Name", eventName);
-		} else if (actionType.equals("track_signup")) {
+		} else if (TRACK_SIGNUP.equals(actionType)) {
 			assertKey("Original Distinct Id", originDistinceId);
 		}
 
 		// Event time
 		long time = System.currentTimeMillis();
-		if (properties != null && properties.containsKey("$time")) {
+		if (properties != null && properties.containsKey(TIME)) {
 			Date eventTime = (Date) properties.get("$time");
 			properties.remove("$time");
 			time = eventTime.getTime();
 		}
 
 		Map<String, Object> eventProperties = new HashMap<String, Object>();
-		if (actionType.equals("track") || actionType.equals("track_signup")) {
+		if (TRACK.equals(actionType) || TRACK_SIGNUP.equals(actionType)) {
 			eventProperties.putAll(superProperties);
 		}
 		if (properties != null) {
@@ -1053,9 +730,9 @@ public class Track {
 			event.put("time_free", true);
 		}
 
-		if (actionType.equals("track")) {
+		if (TRACK.equals(actionType)) {
 			event.put("event", eventName);
-		} else if (actionType.equals("track_signup")) {
+		} else if (TRACK_SIGNUP.equals(actionType)) {
 			event.put("event", eventName);
 			event.put("original_id", originDistinceId);
 		}
@@ -1064,18 +741,18 @@ public class Track {
 	}
 
 	private Map<String, String> getLibProperties() {
+		int traceLength=3;
 		Map<String, String> libProperties = new HashMap<String, String>();
 		libProperties.put("$lib", "Java");
 		libProperties.put("$lib_version", SDK_VERSION);
 		libProperties.put("$lib_method", "code");
 
-		if (this.superProperties.containsKey("$app_version")) {
+		if (this.superProperties.containsKey(APP_VERSION)) {
 			libProperties.put("$app_version", (String) this.superProperties.get("$app_version"));
 		}
 
 		StackTraceElement[] trace = (new Exception()).getStackTrace();
-
-		if (trace.length > 3) {
+		if (trace.length > traceLength) {
 			StackTraceElement traceElement = trace[3];
 			libProperties.put("$lib_detail", String.format("%s##%s##%s##%s", traceElement.getClassName(),
 					traceElement.getMethodName(), traceElement.getFileName(), traceElement.getLineNumber()));
@@ -1085,10 +762,11 @@ public class Track {
 	}
 
 	private void assertKey(String type, String key) throws InvalidArgumentException {
+		int keyLengthMax=255;
 		if (key == null || key.length() < 1) {
 			throw new InvalidArgumentException("The " + type + " is empty.");
 		}
-		if (key.length() > 255) {
+		if (key.length() > keyLengthMax) {
 			throw new InvalidArgumentException("The " + type + " is too long, max length is 255.");
 		}
 	}
@@ -1106,7 +784,7 @@ public class Track {
 			return;
 		}
 		for (Map.Entry<String, Object> property : properties.entrySet()) {
-			if (property.getKey().equals("$is_login_id")) {
+			if ("$is_login_id".equals(property.getKey())) {
 				if (!(property.getValue() instanceof Boolean)) {
 					throw new InvalidArgumentException("The property value of '$is_login_id' should be " + "Boolean.");
 				}
@@ -1125,7 +803,7 @@ public class Track {
 						+ "Number, String, Date, Boolean, List<String>.");
 			}
 
-			if (property.getKey().equals("$time") && !(property.getValue() instanceof Date)) {
+			if ("$time".equals(property.getKey()) && !(property.getValue() instanceof Date)) {
 				throw new InvalidArgumentException("The property '$time' should be a java.util.Date.");
 			}
 
@@ -1155,12 +833,12 @@ public class Track {
 				 
 			}
 
-			if (eventType.equals("profile_increment")) {
+			if ("profile_increment".equals(eventType)) {
 				if (!(property.getValue() instanceof Number)) {
 					throw new InvalidArgumentException(
 							"The property value of PROFILE_INCREMENT should be a " + "Number.");
 				}
-			} else if (eventType.equals("profile_append")) {
+			} else if ("profile_append".equals(eventType)) {
 				if (!(property.getValue() instanceof List<?>)) {
 					throw new InvalidArgumentException(
 							"The property value of PROFILE_INCREMENT should be a " + "List<String>.");
@@ -1173,8 +851,9 @@ public class Track {
 	private static String strJoin(String[] arr, String sep) {
 		StringBuilder sbStr = new StringBuilder();
 		for (int i = 0, il = arr.length; i < il; i++) {
-			if (i > 0)
+			if (i > 0) {
 				sbStr.append(sep);
+			}
 			sbStr.append(arr[i]);
 		}
 		return sbStr.toString();

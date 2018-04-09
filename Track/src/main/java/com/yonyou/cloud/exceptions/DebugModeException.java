@@ -1,7 +1,9 @@
 package com.yonyou.cloud.exceptions;
 
 /**
- * Debug模式下的错误
+ *  Debug模式下的错误
+ * @author daniell
+ *
  */
 public class DebugModeException extends RuntimeException {
 
