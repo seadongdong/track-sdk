@@ -11,7 +11,7 @@
     <artifactId>track</artifactId>
     <version>0.0.2-SNAPSHOT</version>
     <description>用于埋点供收集</description>
-    <url>http://sensorsdata.cn</url>
+     
 
     <properties>
     	<java.version>1.8</java.version>
